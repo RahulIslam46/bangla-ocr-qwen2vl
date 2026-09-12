@@ -94,32 +94,47 @@ def main():
         max_image_size=(args.max_image_dim, args.max_image_dim),
     )
 
-    # 4. Configure Training Arguments
+    # 4. Configure Training Arguments with dynamic version compatibility
     use_fp16 = device == "cuda" and not torch.cuda.is_bf16_supported()
     use_bf16 = device == "cuda" and torch.cuda.is_bf16_supported()
 
-    training_args = TrainingArguments(
-        output_dir=args.output_dir,
-        per_device_train_batch_size=args.batch_size,
-        per_device_eval_batch_size=args.batch_size,
-        gradient_accumulation_steps=args.grad_accum,
-        learning_rate=args.lr,
-        lr_scheduler_type="cosine",
-        warmup_ratio=args.warmup_ratio,
-        num_train_epochs=args.epochs,
-        logging_steps=args.logging_steps,
-        save_strategy="steps",
-        save_steps=args.save_steps,
-        save_total_limit=3,
-        eval_strategy="steps" if len(val_samples) > 0 else "no",
-        eval_steps=args.save_steps,
-        fp16=use_fp16,
-        bf16=use_bf16,
-        optim="paged_adamw_8bit" if device == "cuda" else "adamw_torch",
-        remove_unused_columns=False,
-        dataloader_pin_memory=False,
-        report_to="none",
-    )
+    import inspect
+    sig = inspect.signature(TrainingArguments.__init__).parameters
+
+    training_kwargs = {
+        "output_dir": args.output_dir,
+        "per_device_train_batch_size": args.batch_size,
+        "per_device_eval_batch_size": args.batch_size,
+        "gradient_accumulation_steps": args.grad_accum,
+        "learning_rate": args.lr,
+        "lr_scheduler_type": "cosine",
+        "num_train_epochs": args.epochs,
+        "logging_steps": args.logging_steps,
+        "save_strategy": "steps",
+        "save_steps": args.save_steps,
+        "save_total_limit": 3,
+        "fp16": use_fp16,
+        "bf16": use_bf16,
+        "optim": "paged_adamw_8bit" if device == "cuda" else "adamw_torch",
+        "remove_unused_columns": False,
+        "dataloader_pin_memory": False,
+        "report_to": "none",
+    }
+
+    if "warmup_steps" in sig:
+        training_kwargs["warmup_steps"] = 20
+    elif "warmup_ratio" in sig:
+        training_kwargs["warmup_ratio"] = args.warmup_ratio
+
+    if len(val_samples) > 0:
+        if "eval_strategy" in sig:
+            training_kwargs["eval_strategy"] = "steps"
+            training_kwargs["eval_steps"] = args.save_steps
+        elif "evaluation_strategy" in sig:
+            training_kwargs["evaluation_strategy"] = "steps"
+            training_kwargs["eval_steps"] = args.save_steps
+
+    training_args = TrainingArguments(**training_kwargs)
 
     # 5. Initialize Trainer
     trainer = Trainer(
