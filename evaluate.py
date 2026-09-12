@@ -7,10 +7,6 @@ import os
 import argparse
 from pathlib import Path
 from PIL import Image
-import torch
-from transformers import AutoProcessor, Qwen2VLForConditionalGeneration
-from peft import PeftModel
-import jiwer
 
 from src.dataset import parse_bn_htrd
 
@@ -28,6 +24,7 @@ def parse_args():
 
 
 def predict_ocr(model, processor, image: Image.Image, prompt_text: str = "Extract the handwritten Bengali text from this image accurately.") -> str:
+    import torch
     messages = [
         {
             "role": "user",
@@ -59,6 +56,18 @@ def predict_ocr(model, processor, image: Image.Image, prompt_text: str = "Extrac
 
 def main():
     args = parse_args()
+
+    try:
+        import torch
+        from transformers import AutoProcessor, Qwen2VLForConditionalGeneration
+        from peft import PeftModel
+        import jiwer
+    except ImportError as e:
+        print(f"\n[Error] Missing evaluation dependency: {e}")
+        print("Please ensure dependencies from requirements.txt are installed:")
+        print("  pip install -r requirements.txt\n")
+        return
+
     device = "cuda" if torch.cuda.is_available() else "cpu"
     print(f"Using device: {device}")
 

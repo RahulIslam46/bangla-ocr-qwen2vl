@@ -7,11 +7,7 @@ import os
 import argparse
 from pathlib import Path
 import random
-import torch
-from transformers import TrainingArguments, Trainer
-
 from src.dataset import BNHTRdDataset, parse_bn_htrd, create_collate_fn
-from src.model import load_qwen2_vl_model
 
 
 def parse_args():
@@ -37,6 +33,17 @@ def parse_args():
 
 def main():
     args = parse_args()
+
+    try:
+        import torch
+        from transformers import TrainingArguments, Trainer
+        from src.model import load_qwen2_vl_model
+    except ImportError as e:
+        print(f"\n[Error] Missing training dependency: {e}")
+        print("Please ensure dependencies from requirements.txt are installed:")
+        print("  pip install -r requirements.txt\n")
+        return
+
     random.seed(args.seed)
     torch.manual_seed(args.seed)
 
