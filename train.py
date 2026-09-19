@@ -26,6 +26,8 @@ def parse_args():
     parser.add_argument("--resume_from_checkpoint", type=str, default=None, help="Path to checkpoint directory to resume from.")
     parser.add_argument("--save_steps", type=int, default=50, help="Save checkpoint every X steps.")
     parser.add_argument("--logging_steps", type=int, default=5, help="Log metrics every X steps.")
+    parser.add_argument("--max_val_samples", type=int, default=150, help="Cap validation samples to keep eval fast (default: 150).")
+    parser.add_argument("--max_time_hours", type=float, default=10.5, help="Maximum training duration in hours before clean exit (default: 10.5h).")
     parser.add_argument("--max_image_dim", type=int, default=640, help="Max width/height for input images.")
     parser.add_argument("--seed", type=int, default=42, help="Random seed for reproducibility.")
     return parser.parse_args()
@@ -72,6 +74,8 @@ def main():
     val_count = max(1, int(len(all_samples) * args.val_split))
     train_samples = all_samples[val_count:]
     val_samples = all_samples[:val_count]
+    if args.max_val_samples and len(val_samples) > args.max_val_samples:
+        val_samples = val_samples[:args.max_val_samples]
     print(f"Train samples: {len(train_samples)} | Validation samples: {len(val_samples)}")
 
     # 2. Load Model & Processor
@@ -136,13 +140,33 @@ def main():
 
     training_args = TrainingArguments(**training_kwargs)
 
-    # 5. Initialize Trainer
+    # 5. Initialize Trainer with Time-Budget Callback
+    import time
+    from transformers import TrainerCallback
+
+    class TimeoutCallback(TrainerCallback):
+        def __init__(self, max_seconds: float):
+            self.max_seconds = max_seconds
+            self.start_time = time.time()
+
+        def on_step_end(self, args, state, control, **kwargs):
+            elapsed = time.time() - self.start_time
+            if elapsed >= self.max_seconds:
+                print(f"\n[Time Budget Reached] Elapsed: {elapsed/3600:.2f}h. Triggering clean training completion and checkpoint save...")
+                control.should_training_stop = True
+                control.should_save = True
+
+    trainer_callbacks = []
+    if args.max_time_hours and args.max_time_hours > 0:
+        trainer_callbacks.append(TimeoutCallback(max_seconds=args.max_time_hours * 3600))
+
     trainer = Trainer(
         model=model,
         args=training_args,
         train_dataset=train_dataset,
         eval_dataset=val_dataset if len(val_samples) > 0 else None,
         data_collator=collate_fn,
+        callbacks=trainer_callbacks,
     )
 
     # 6. Execute Training

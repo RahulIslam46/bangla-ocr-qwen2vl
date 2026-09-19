@@ -170,6 +170,16 @@ class BNHTRdDataset(Dataset):
         }
 
 
+def _find_subsequence(seq: torch.Tensor, subseq: List[int]) -> int:
+    """Find the end index of the first occurrence of subseq in seq."""
+    sub_len = len(subseq)
+    seq_list = seq.tolist()
+    for j in range(len(seq_list) - sub_len + 1):
+        if seq_list[j : j + sub_len] == subseq:
+            return j + sub_len
+    return -1
+
+
 def create_collate_fn(
     processor,
     max_image_size: Tuple[int, int] = (640, 640),
@@ -207,7 +217,6 @@ def create_collate_fn(
             texts.append((full_prompt, full_text))
 
         # Process batch through Qwen2-VL processor
-        prompt_texts = [p for p, _ in texts]
         full_texts = [f for _, f in texts]
 
         inputs = processor(
@@ -219,11 +228,20 @@ def create_collate_fn(
 
         labels = inputs["input_ids"].clone()
 
-        # Mask prompt tokens so loss is only computed on the target output
-        for i, (prompt, _) in enumerate(texts):
-            prompt_token_ids = processor.tokenizer.encode(prompt, add_special_tokens=False)
-            prompt_len = len(prompt_token_ids)
-            labels[i, :prompt_len] = -100
+        # Find assistant prompt token sequence to mask all prompt and image tokens
+        assistant_ids = processor.tokenizer.encode("<|im_start|>assistant\n", add_special_tokens=False)
+
+        for i in range(len(full_texts)):
+            end_idx = _find_subsequence(labels[i], assistant_ids)
+            if end_idx != -1:
+                labels[i, :end_idx] = -100
+            else:
+                # Fallback: find <|im_start|> for the assistant turn
+                im_start_id = processor.tokenizer.convert_tokens_to_ids("<|im_start|>")
+                matches = (labels[i] == im_start_id).nonzero(as_tuple=True)[0]
+                if len(matches) > 0:
+                    last_start = matches[-1].item()
+                    labels[i, : min(len(labels[i]), last_start + 3)] = -100
 
         # Mask padding tokens
         labels[labels == processor.tokenizer.pad_token_id] = -100
