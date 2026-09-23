@@ -40,3 +40,6 @@ data/
 *.tar.gz
 .ipynb_checkpoints/
 wandb/
+
+checkpoint-*/
+kaggle_output/
