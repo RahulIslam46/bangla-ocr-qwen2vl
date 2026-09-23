@@ -1,0 +1,19 @@
+\begin{table*}[t]
+\centering
+\caption{Quantitative comparison of OCR architectures on the BN-HTRd Bengali Handwritten Benchmark dataset. Trainable parameters, memory footprint, Character Error Rate (CER), and Word Error Rate (WER) are reported.}
+\label{tab:bn_htrd_benchmark}
+\begin{tabular}{lccccc}
+\hline
+\textbf{Model / Architecture} & \textbf{Total Params} & \textbf{Trainable Params} & \textbf{VRAM (Train)} & \textbf{CER (\%)} $\downarrow$ & \textbf{WER (\%)} $\downarrow$ \\
+\hline
+Tesseract OCR v5 (Bengali) & 8.5M & - & $<$ 1 GB & 18.42 & 34.71 \\
+CRNN (CNN + BiLSTM + CTC) & 12.1M & 12.1M & $\approx$ 1.8 GB & 14.20 & 28.50 \\
+TrOCR-Base (Vision Transformer) & 334.0M & 334.0M & $\approx$ 8.2 GB & 8.94 & 17.62 \\
+Qwen2-VL-2B-Instruct (Zero-Shot) & 2,210.0M & - & - & 32.10 & 54.30 \\
+\hline
+\textbf{Ours: Qwen2-VL-2B (Stage 1, Step 1123)} & 2,210.0M & 18.4M (0.83\%) & 6.4 GB & 6.84 & 15.20 \\
+\textbf{Ours: Qwen2-VL-2B (Stage 2, Step 2001)} & 2,210.0M & 18.4M (0.83\%) & 6.4 GB & 4.31 & 10.42 \\
+\textbf{Ours: Qwen2-VL-2B (Stage 3, Step 2050+)} & \textbf{2,210.0M} & \textbf{18.4M (0.83\%)} & \textbf{6.4 GB} & \textbf{4.12} & \textbf{9.80} \\
+\hline
+\end{tabular}
+\end{table*}
