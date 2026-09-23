@@ -21,14 +21,21 @@ OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
 REPO_DIR = Path("/home/rahul-islam/bangla-ocr-qwen2vl/reports/figures")
 REPO_DIR.mkdir(parents=True, exist_ok=True)
 
-# Font setup for Bengali Unicode rendering
-BN_FONT_PATH = "/usr/share/fonts/truetype/noto/NotoSansBengali-Regular.ttf"
-BN_BOLD_PATH = "/usr/share/fonts/truetype/noto/NotoSansBengali-Bold.ttf"
+# Font setup for unified Bengali and Latin Unicode rendering
+FONT_PATH = "/usr/share/fonts/truetype/freefont/FreeSans.ttf"
+BOLD_PATH = "/usr/share/fonts/truetype/freefont/FreeSansBold.ttf"
+if not os.path.exists(FONT_PATH):
+    FONT_PATH = "/usr/share/fonts/truetype/noto/NotoSansBengali-Regular.ttf"
+    BOLD_PATH = "/usr/share/fonts/truetype/noto/NotoSansBengali-Bold.ttf"
 
-bn_prop = fm.FontProperties(fname=BN_FONT_PATH) if os.path.exists(BN_FONT_PATH) else None
-bn_bold = fm.FontProperties(fname=BN_BOLD_PATH) if os.path.exists(BN_BOLD_PATH) else None
+bn_prop = fm.FontProperties(fname=FONT_PATH) if os.path.exists(FONT_PATH) else None
+bn_bold = fm.FontProperties(fname=BOLD_PATH) if os.path.exists(BOLD_PATH) else None
 
-plt.rcParams['font.sans-serif'] = ['DejaVu Sans', 'Arial', 'Liberation Sans']
+fm.fontManager.addfont(FONT_PATH)
+if os.path.exists(BOLD_PATH):
+    fm.fontManager.addfont(BOLD_PATH)
+
+plt.rcParams['font.sans-serif'] = ['FreeSans', 'DejaVu Sans', 'Arial']
 plt.rcParams['font.family'] = 'sans-serif'
 
 
@@ -160,8 +167,8 @@ def generate_figure3_ablation_analysis():
     for i in range(len(buckets)):
         ax1.text(bx[i] + bwidth/2, ours_cer[i] + 1.0, f'{ours_cer[i]:.1f}%', ha='center', fontsize=9, fontweight='bold', color='#1d3557')
 
-    # 2. Compound Bengali Conjuncts (যুক্তবর্ণ) Recognition Accuracy
-    conjunct_labels = ['ক্ষ (k-sh)', 'জ্ঞ (g-n)', 'ষ্ণ (sh-n)', 'হ্ম (h-m)', 'ত্র (t-r)', 'ন্ত (n-t)', 'ন্দ (n-d)', 'ষ্ট (sh-t)']
+    # 2. Compound Bengali Conjuncts Recognition Accuracy
+    conjunct_labels = ['ক্ষ', 'জ্ঞ', 'ষ্ণ', 'হ্ম', 'ত্র', 'ন্ত', 'ন্দ', 'ষ্ট']
     zero_shot_acc = [38.2, 42.0, 29.5, 24.0, 61.2, 54.0, 58.5, 45.0]
     ours_acc = [94.5, 93.8, 91.2, 88.5, 97.4, 96.8, 96.2, 94.0]
 
@@ -171,9 +178,9 @@ def generate_figure3_ablation_analysis():
     ax2.barh(cy - cwidth/2, zero_shot_acc, cwidth, label='Zero-Shot Qwen2-VL', color='#e9c46a', edgecolor='black', linewidth=0.7)
     ax2.barh(cy + cwidth/2, ours_acc, cwidth, label='Ours (Fine-Tuned)', color='#2a9d8f', edgecolor='black', linewidth=0.7)
     ax2.set_xlabel('Recognition Accuracy (%)', fontsize=11, fontweight='bold')
-    ax2.set_title('(b) Bengali Compound Conjunct (যুক্তবর্ণ) Accuracy', fontsize=12, fontweight='bold')
+    ax2.set_title('(b) Compound Conjunct / Ligature Recognition Accuracy', fontsize=12, fontweight='bold')
     ax2.set_yticks(cy)
-    ax2.set_yticklabels(conjunct_labels, fontproperties=bn_bold if bn_bold else None, fontsize=10)
+    ax2.set_yticklabels(conjunct_labels, fontproperties=fm.FontProperties(fname="/usr/share/fonts/truetype/noto/NotoSansBengali-Bold.ttf"), fontsize=13)
     ax2.legend(loc='lower right')
     ax2.grid(axis='x', linestyle='--', alpha=0.5)
     ax2.set_xlim(0, 110)
