@@ -58,7 +58,8 @@ def main():
     processor = AutoProcessor.from_pretrained(args.model_id)
     model = Qwen2VLForConditionalGeneration.from_pretrained(
         args.model_id,
-        torch_dtype=torch.float32 if device == "cpu" else torch.bfloat16,
+        torch_dtype=torch.bfloat16,
+        low_cpu_mem_usage=True,
         device_map="auto" if device == "cuda" else None,
     )
 
