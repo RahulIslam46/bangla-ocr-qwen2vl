@@ -48,7 +48,7 @@ def main():
     device = "cuda" if torch.cuda.is_available() else "cpu"
     print(f"Using device: {device}")
 
-    crop_files = sorted(glob.glob(os.path.join(args.crops_dir, "line_*.png")))
+    crop_files = sorted([f for f in glob.glob(os.path.join(args.crops_dir, "*.png")) if not os.path.basename(f).startswith('.')])
     if not crop_files:
         raise FileNotFoundError(f"No crop files found in {args.crops_dir}")
 
