@@ -1,0 +1,182 @@
+[
+  {
+    "id": 1,
+    "tag": "plobota_comma",
+    "text": "প্লবতা,",
+    "bbox": [
+      15,
+      50,
+      145,
+      58
+    ],
+    "crop_file": "01_plobota_comma.png"
+  },
+  {
+    "id": 2,
+    "tag": "f_eq",
+    "text": "F =",
+    "bbox": [
+      175,
+      50,
+      56,
+      40
+    ],
+    "crop_file": "02_f_eq.png"
+  },
+  {
+    "id": 3,
+    "tag": "ah_rho_g",
+    "text": "Ahρg",
+    "bbox": [
+      246,
+      24,
+      168,
+      62
+    ],
+    "crop_file": "03_ah_rho_g.png"
+  },
+  {
+    "id": 4,
+    "tag": "ekhane",
+    "text": "এখানে",
+    "bbox": [
+      12,
+      126,
+      195,
+      48
+    ],
+    "crop_file": "04_ekhane.png"
+  },
+  {
+    "id": 5,
+    "tag": "h_var",
+    "text": "h",
+    "bbox": [
+      220,
+      115,
+      42,
+      42
+    ],
+    "crop_file": "05_h_var.png"
+  },
+  {
+    "id": 6,
+    "tag": "bostur_1",
+    "text": "বস্তুর",
+    "bbox": [
+      286,
+      112,
+      92,
+      60
+    ],
+    "crop_file": "06_bostur_1.png"
+  },
+  {
+    "id": 7,
+    "tag": "ucchor_1",
+    "text": "উচ্চতা",
+    "bbox": [
+      376,
+      92,
+      156,
+      46
+    ],
+    "crop_file": "07_ucchor_1.png"
+  },
+  {
+    "id": 8,
+    "tag": "naki",
+    "text": "নাকি",
+    "bbox": [
+      534,
+      76,
+      122,
+      54
+    ],
+    "crop_file": "08_naki.png"
+  },
+  {
+    "id": 9,
+    "tag": "panir",
+    "text": "পানির",
+    "bbox": [
+      65,
+      173,
+      140,
+      50
+    ],
+    "crop_file": "09_panir.png"
+  },
+  {
+    "id": 10,
+    "tag": "muktatal",
+    "text": "মুক্ততল",
+    "bbox": [
+      224,
+      176,
+      152,
+      48
+    ],
+    "crop_file": "10_muktatal.png"
+  },
+  {
+    "id": 11,
+    "tag": "theke",
+    "text": "থেকে",
+    "bbox": [
+      380,
+      162,
+      130,
+      54
+    ],
+    "crop_file": "11_theke.png"
+  },
+  {
+    "id": 12,
+    "tag": "bostur_2",
+    "text": "বস্তুর",
+    "bbox": [
+      530,
+      150,
+      108,
+      58
+    ],
+    "crop_file": "12_bostur_2.png"
+  },
+  {
+    "id": 13,
+    "tag": "toldown",
+    "text": "তলদেশ",
+    "bbox": [
+      94,
+      236,
+      192,
+      38
+    ],
+    "crop_file": "13_toldown.png"
+  },
+  {
+    "id": 14,
+    "tag": "porjonto",
+    "text": "পর্যন্ত",
+    "bbox": [
+      294,
+      222,
+      108,
+      50
+    ],
+    "crop_file": "14_porjonto.png"
+  },
+  {
+    "id": 15,
+    "tag": "ucchota_qm",
+    "text": "উচ্চতা?",
+    "bbox": [
+      408,
+      202,
+      176,
+      60
+    ],
+    "crop_file": "15_ucchota_qm.png"
+  }
+]
