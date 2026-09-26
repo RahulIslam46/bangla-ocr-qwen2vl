@@ -19,11 +19,12 @@ def parse_args():
     parser.add_argument("--model_id", type=str, default="Qwen/Qwen2-VL-2B-Instruct")
     parser.add_argument("--adapter_path", type=str, default=None, help="Path to fine-tuned LoRA adapter directory.")
     parser.add_argument("--num_samples", type=int, default=10, help="Number of samples to evaluate if evaluating data_dir.")
-    parser.add_argument("--max_new_tokens", type=int, default=128)
+    parser.add_argument("--load_in_4bit", action="store_true", help="Load base model in 4-bit NF4 quantization.")
+    parser.add_argument("--max_new_tokens", type=int, default=512)
     return parser.parse_args()
 
 
-def predict_ocr(model, processor, image: Image.Image, prompt_text: str = "Extract the handwritten Bengali text from this image accurately.") -> str:
+def predict_ocr(model, processor, image: Image.Image, prompt_text: str = "Extract the handwritten Bengali text from this image accurately.", max_new_tokens: int = 512) -> str:
     import torch
     messages = [
         {
@@ -40,7 +41,7 @@ def predict_ocr(model, processor, image: Image.Image, prompt_text: str = "Extrac
     with torch.no_grad():
         generated_ids = model.generate(
             **inputs,
-            max_new_tokens=128,
+            max_new_tokens=max_new_tokens,
             do_sample=False,
         )
 
@@ -71,11 +72,22 @@ def main():
     device = "cuda" if torch.cuda.is_available() else "cpu"
     print(f"Using device: {device}")
 
+    bnb_config = None
+    if args.load_in_4bit and device == "cuda":
+        from transformers import BitsAndBytesConfig
+        bnb_config = BitsAndBytesConfig(
+            load_in_4bit=True,
+            bnb_4bit_quant_type="nf4",
+            bnb_4bit_compute_dtype=torch.bfloat16,
+            bnb_4bit_use_double_quant=True,
+        )
+
     # Load processor and base model
     processor = AutoProcessor.from_pretrained(args.model_id)
     model = Qwen2VLForConditionalGeneration.from_pretrained(
         args.model_id,
-        torch_dtype=torch.float16 if device == "cuda" else torch.float32,
+        quantization_config=bnb_config if bnb_config else None,
+        torch_dtype=torch.bfloat16 if (device == "cuda" and not bnb_config) else (torch.float32 if device == "cpu" else None),
         device_map="auto" if device == "cuda" else None,
     )
 
@@ -90,7 +102,7 @@ def main():
         if not img_path.exists():
             raise FileNotFoundError(f"Image not found: {img_path}")
         image = Image.open(img_path).convert("RGB")
-        prediction = predict_ocr(model, processor, image)
+        prediction = predict_ocr(model, processor, image, max_new_tokens=args.max_new_tokens)
         print(f"\nImage: {img_path.name}")
         print(f"Prediction: {prediction}")
         return
@@ -103,7 +115,7 @@ def main():
         print(f"\nEvaluating on {len(samples)} samples...")
         for i, item in enumerate(samples):
             image = Image.open(item["image_path"]).convert("RGB")
-            pred = predict_ocr(model, processor, image)
+            pred = predict_ocr(model, processor, image, max_new_tokens=args.max_new_tokens)
             gt = item["text"]
             predictions.append(pred)
             references.append(gt)
